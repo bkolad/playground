@@ -61,18 +61,22 @@ instance (Monad f, Monad g) => Monad (Compose f g) where
     
 newtype  MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
 
-      
 
-instance (Monad m) => Applicative (MaybeT m) where
+
+instance (Functor m) => Functor (MaybeT m) where
+    fmap f (MaybeT x) = MaybeT $ fmap (fmap f) x
+    
+
+instance (Applicative m) => Applicative (MaybeT m) where
     pure = MaybeT . pure . pure  
-    MaybeT f <*> (MaybeT x) = MaybeT $ lift2 (<*>) f x  
+    MaybeT f <*> (MaybeT x) = MaybeT $ lift2 (<*>) f x 
  
  
  
 instance (Monad m) => Monad (MaybeT m) where
     return = pure
-    x >>= f = MaybeT $ do
-        v <- runMaybeT x
+    MaybeT x >>= f = MaybeT $ do
+        v <- x
         case v of
              Nothing -> return Nothing
              Just y  -> runMaybeT (f y)
@@ -88,7 +92,7 @@ instance (Functor m) => Functor (ListT m) where
     
     
     
-instance (Monad m) => Applicative (ListT m) where
+instance (Applicative m) => Applicative (ListT m) where
     pure  = ListT . pure . pure
     ListT fun <*> (ListT x) =  ListT $ lift2 (<*>) fun x
     
@@ -223,9 +227,6 @@ instance Show1 [] where
 instance (Show1 m, Show a) => Show (MaybeT m a) where
   show (MaybeT m) = show1 m 
 
-  
-  
-instance (Functor m) => Functor (MaybeT m) where
-  fmap f (MaybeT x) = MaybeT $ fmap (fmap f) x    
+    
 
   
