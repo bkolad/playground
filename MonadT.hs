@@ -111,10 +111,11 @@ instance (Monad m) => Monad (ListT m) where
 
 -- Control.Monad
 liftM   :: (Monad m) => (a1 -> r) -> m a1 -> m r
-liftM f m1              = f <$> m1--do { x1 <- m1; return (f x1) }
+liftM f m1 = f <$> m1 --do { x1 <- m1; return (f x1) }
 
 -- MonadTrans
-liftToMaybeT :: [a] -> MaybeT [] a
+--liftToMaybeT :: [a] -> MaybeT [] a
+liftToMaybeT :: (Monad m) => m a -> MaybeT m a
 liftToMaybeT = MaybeT . liftM Just
 
 
@@ -124,6 +125,14 @@ fun = runMaybeT $
    do x <- liftToMaybeT [1,2]
       y <- MaybeT $ [Just 7, Nothing]
       return $ x+y
+
+ 
+liftMaybe :: (Monad m) => Maybe a -> MaybeT m a 
+liftMaybe = MaybeT . return
+      
+funIO :: MaybeT IO ()
+funIO = do x <- liftMaybe $ Just "blabla"
+           liftToMaybeT $ print x 
          
      
      
